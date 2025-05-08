@@ -1,0 +1,125 @@
+# Päivitetään HTML:ään annettu webhook-URL ja lisätään responsiivinen mobiiliteema (media query + skaalautuvuus)
+
+updated_html_content = """
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yhteydenottolomake</title>
+  <style>
+    body {
+      background: #1e1e2f;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    form {
+      background: #2a2a40;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 400px;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    input, textarea {
+      background: #444;
+      color: white;
+    }
+    button {
+      background: #00b894;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background: #00e6ac;
+    }
+    @media (max-width: 500px) {
+      body {
+        padding: 10px;
+      }
+      form {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<form id="contactForm">
+  <h2>Ota yhteyttä</h2>
+  <input type="text" id="name" placeholder="Nimi" required>
+  <input type="tel" id="phone" placeholder="Puhelinnumero" required>
+  <textarea id="message" placeholder="Viesti" rows="5" required></textarea>
+  <button type="submit">Lähetä</button>
+</form>
+
+<script>
+  const webhookURL = "https://discord.com/api/webhooks/1290348004066201753/2TjZ0mCwYEp6WzJn9L5E86urlMLPpcIIM7B0FFpkzFlkzqbl7V5WV32Psogsg63EhCpT";
+
+  document.getElementById('contactForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const message = document.getElementById('message').value;
+    const userAgent = navigator.userAgent;
+
+    const ipResponse = await fetch('https://api.ipify.org?format=json');
+    const ipData = await ipResponse.json();
+    const ip = ipData.ip;
+
+    const content = {
+      embeds: [{
+        title: "Uusi yhteydenotto",
+        color: 3447003,
+        fields: [
+          { name: "Nimi", value: name, inline: false },
+          { name: "Puhelinnumero", value: phone, inline: false },
+          { name: "Viesti", value: message, inline: false },
+          { name: "IP-osoite", value: ip, inline: false },
+          { name: "Laite", value: userAgent, inline: false }
+        ],
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    fetch(webhookURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(content)
+    }).then(() => {
+      alert("Lähetetty! Kiitos yhteydenotosta.");
+      document.getElementById('contactForm').reset();
+    }).catch(err => {
+      alert("Lähetys epäonnistui.");
+      console.error(err);
+    });
+  });
+</script>
+
+</body>
+</html>
+"""
+
+# Tallennetaan päivitetty HTML-tiedosto
+updated_file_path = "/mnt/data/contact_form_mobile.html"
+with open(updated_file_path, "w", encoding="utf-8") as f:
+    f.write(updated_html_content)
+
+updated_file_path

